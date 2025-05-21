@@ -68,7 +68,7 @@ int handshake(int socket_client)
     char pass[32] = "base_pass";
     char key[16];
     genere_password(pass, key);
-    send(socket_client, x, strlen(key), 0);
+    send(socket_client, key, strlen(key), 0);
     char try[64] = {0};
     int r = recv(socket_client, try, sizeof(try) - 1, 0);
     if (r <= 0) {
@@ -99,6 +99,7 @@ void *manage_client(void *arg)
         printf("suite de l implementation\n");
     }
     close(*client_fd);
+    free(client_fd);
     return NULL;
 
 
@@ -125,7 +126,10 @@ void *client_connect(void *arg)
 
         pthread_t client_thread;
         pthread_create(&client_thread, NULL, manage_client, client_fd);
+        pthread_detach(client_thread);
+
     }
+
     return NULL;
 }
 
@@ -163,9 +167,8 @@ int main() {
     //fclose(f);
     pthread_t client_connector;
     pthread_create(&client_connector, NULL, client_connect, server);
-    pthread_join(client_connector, NULL);
+    pthread_join(client_connector);
     close(server->server_fd);
     free(server);
-
     return 0;
 }
